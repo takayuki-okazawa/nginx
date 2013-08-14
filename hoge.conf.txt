@@ -1,0 +1,135 @@
+    server {
+        listen       10.60.3.13:80;
+        server_name  the-hoge.net the-hoge.data-hotel ;
+        if ($remote_addr ~ "^10\.60\.3\.3") {
+         return 200;
+        }
+        rewrite ^(.*) https://the-hoge.net$1 permanent;
+    }
+    server {
+        listen    10.60.3.13:443 default ssl;
+
+        ssl_certificate      /usr/local/nginx/conf/ssl/the-hoge.net/the-hoge.net.pem;
+        ssl_certificate_key  /usr/local/nginx/conf/ssl/the-hoge.net/the-hoge.net.key;
+
+        server_name  the-hoge.net the-hoge.data-hotel ;
+
+        if ($remote_addr ~ "^10\.60\.3\.3") {
+         return 200; 
+        }
+        set $kyodo  "false" ;
+        #if ( $remote_addr != "114.160.226.215") {
+        # rewrite ^(.*) http://corp.hoge.jp/btob/hoge$1 redirect;
+        #}
+
+        if ( $remote_addr = "114.160.226.215" ) { set $kyodo 'true';}
+        if ( $remote_addr = "202.248.159.3" ) { set $kyodo 'true';}
+        if ( $remote_addr = "220.110.28.44" ) { set $kyodo 'true';}
+        if ( $remote_addr = "220.110.28.45" ) { set $kyodo 'true';}
+        if ( $remote_addr = "220.110.28.46" ) { set $kyodo 'true';}
+
+        #if ($kyodo = "false" ) {rewrite ^(.*) http://corp.hoge.jp/btob/hoge$1 redirect;}
+
+        access_log  /usr/local/nginx/logs/the-hoge.net/access.log  main;
+
+        location / {
+            root   /var/www/the-hoge.net/htdocs/;
+            index  index.html index.htmi index.php;
+            #satisfy any;
+            #allow 10.60.3.0/24;
+            #allow 114.160.226.215;
+            #allow 202.248.159.3;
+            #deny all;
+            #auth_basic "Please enter your ID and password";
+            #auth_basic_user_file  /var/www/.htpasswd;
+            #valid_referers server_names blocked ;
+            #if ($invalid_referer) { return 403; }
+        }
+        #location ~ data\.js$  {
+        #    valid_referers none blocked server_names ;
+        #    if ($invalid_referer) { return 403; }
+        #}
+        location /nginx_status {
+          stub_status on;
+          access_log  off;
+          allow 127.0.0.1;
+          deny  all;
+        }
+
+        location /to_verisign {
+            root   /var/www/the-hoge.net/;
+            index  index.html index.htmi index.php;
+            satisfy any;
+            allow 10.60.3.0/24;
+            allow 114.160.226.215;
+            deny all;
+            auth_basic "Please enter your ID and password";
+            auth_basic_user_file  /var/www/.htpasswd;
+        }
+
+        location /wp/wp-admin/ {
+            satisfy any;
+            allow 10.60.3.0/24;
+            deny all;
+            auth_basic "Please enter your ID and password";
+            auth_basic_user_file  /var/www/.htpasswd;
+        }
+
+        error_page  404              /404.html;
+
+        # redirect server error pages to the static page /50x.html
+        #
+        error_page   500 502 503 504  /50x.html;
+        location = /50x.html {
+            root   html;
+        }
+
+        # proxy the PHP scripts to Apache listening on 127.0.0.1:80
+        #
+        #location ~ \.php$ {
+        #    proxy_pass   http://127.0.0.1;
+        #}
+
+        # pass the PHP scripts to FastCGI server listening on 127.0.0.1:9000
+        #
+        location ~ \.php$ {
+            root           /var/www/the-hoge.net/htdocs/;
+            fastcgi_pass   127.0.0.1:9000;
+            fastcgi_index  index.php;
+            fastcgi_param  SCRIPT_FILENAME  $document_root$fastcgi_script_name;
+            include        fastcgi_params;
+        }
+
+        # deny access to .htaccess files, if Apache's document root
+        # concurs with nginx's one
+        #
+        location ~ /\.ht {
+            deny  all;
+        }
+    }
+
+
+    # HTTPS server
+    #
+#    server {
+#        listen       443;
+#        server_name  localhost;
+#        ssl_certificate      /usr/local/nginx/conf/ssl/the-hoge.net.pem;
+#        ssl_certificate_key  /usr/local/nginx/conf/ssl/the-hoge.net.key;
+#
+#
+#        ssl                  on;
+    #    ssl_certificate      cert.pem;
+    #    ssl_certificate_key  cert.key;
+
+    #    ssl_session_timeout  5m;
+
+    #    ssl_protocols  SSLv2 SSLv3 TLSv1;
+    #    ssl_ciphers  HIGH:!aNULL:!MD5;
+    #    ssl_prefer_server_ciphers   on;
+
+#        location / {
+#            root   html;
+#            index  index.html index.htm;
+#        }
+#    }
